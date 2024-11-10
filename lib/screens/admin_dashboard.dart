@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'admin_login.dart';
 import 'view_students.dart';
 import 'view_employers.dart';
-import 'admin_login.dart';
+import 'verify_students.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -16,16 +17,16 @@ class _AdminDashboardState extends State<AdminDashboard>
   bool _isCollapsed = true; // Initial state for sidebar
 
   final _pages = [
-    ViewStudentsPage(),
+    // ViewStudentsPage(),
+    VerifyStudentsPage(),
     ListEmployersPage(),
+
     // Add more pages here as needed
   ];
 
   final List<String> _pageTitles = [
     'View Students',
     'View Employers',
-    'Schedule',
-    'Messages'
   ];
 
   // Toggle sidebar collapse/expand
@@ -35,16 +36,11 @@ class _AdminDashboardState extends State<AdminDashboard>
     });
   }
 
-  // Logout method
   void _logout() async {
-    // Clear user session and perform logout here
-    // await FirebaseAuth.instance.signOut(); // Uncomment if using Firebase
-    // Redirect to login page
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (context) =>
-            const AdminLoginPage(), // LoginPage is the login screen
+        builder: (context) => const AdminLoginPage(),
       ),
     );
   }
@@ -109,13 +105,12 @@ class _AdminDashboardState extends State<AdminDashboard>
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
-                      Text('Admin Name',
+                      Text('Admin',
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),
                       SizedBox(height: 4),
-                      Text('admin@example.com',
-                          style: TextStyle(color: Colors.white)),
+                      Text('CampusGigs', style: TextStyle(color: Colors.white)),
                     ],
                   ),
                 ],
@@ -125,10 +120,8 @@ class _AdminDashboardState extends State<AdminDashboard>
             Expanded(
               child: ListView(
                 children: [
-                  _buildSidebarItem(Icons.person, 'View Students', 0),
+                  _buildSidebarItem(Icons.schedule, 'View Students', 0),
                   _buildSidebarItem(Icons.business, 'View Employers', 1),
-                  _buildSidebarItem(Icons.schedule, 'Schedule', 2),
-                  _buildSidebarItem(Icons.message, 'Messages', 3),
                 ],
               ),
             ),
