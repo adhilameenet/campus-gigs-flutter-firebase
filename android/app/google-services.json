@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "503746643543",
+    "firebase_url": "https://fir-demo-d1167-default-rtdb.firebaseio.com",
+    "project_id": "fir-demo-d1167",
+    "storage_bucket": "fir-demo-d1167.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503746643543:android:e928459aaa9022f7100512",
+        "android_client_info": {
+          "package_name": "com.example.campus_gigs"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8w9SiiaM47BnH5JYcARp1jiSB2RmHFlo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
