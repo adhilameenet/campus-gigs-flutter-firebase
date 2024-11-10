@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'admin_login.dart';
-import 'view_students.dart';
-import 'view_employers.dart';
+// import 'view_students.dart';
+// import 'view_employers.dart';
+import 'verify_employers.dart';
 import 'verify_students.dart';
+import 'view_jobs_admin.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -19,14 +21,15 @@ class _AdminDashboardState extends State<AdminDashboard>
   final _pages = [
     // ViewStudentsPage(),
     VerifyStudentsPage(),
-    ListEmployersPage(),
-
+    VerifyEmployersPage(),
+    ViewJobsPage()
     // Add more pages here as needed
   ];
 
   final List<String> _pageTitles = [
     'View Students',
     'View Employers',
+    'Availabe Jobs'
   ];
 
   // Toggle sidebar collapse/expand
@@ -122,6 +125,7 @@ class _AdminDashboardState extends State<AdminDashboard>
                 children: [
                   _buildSidebarItem(Icons.schedule, 'View Students', 0),
                   _buildSidebarItem(Icons.business, 'View Employers', 1),
+                  _buildSidebarItem(Icons.business, 'Availabe Jobs', 2),
                 ],
               ),
             ),
