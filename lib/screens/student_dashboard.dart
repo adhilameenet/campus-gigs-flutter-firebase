@@ -103,6 +103,22 @@ class _StudentDashboardState extends State<StudentDashboard> {
                 Navigator.pushNamed(context, '/view-jobs');
               },
             ),
+            ListTile(
+              leading: Icon(Icons.search),
+              title: const Text('Applied Jobs'),
+              onTap: () {
+                // Navigate to Tutors page (Add implementation)
+                Navigator.pushNamed(context, '/applied-jobs');
+              },
+            ),
+            // ListTile(
+            //   leading: Icon(Icons.search),
+            //   title: const Text('View Applicants'),
+            //   onTap: () {
+            //     // Navigate to Tutors page (Add implementation)
+            //     Navigator.pushNamed(context, '/view-applicants');
+            //   },
+            // ),
             const Divider(),
             ListTile(
               leading: Icon(Icons.exit_to_app),

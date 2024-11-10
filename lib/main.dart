@@ -11,6 +11,8 @@ import 'screens/employer_dashboard.dart';
 import 'screens/employer_edit_profile.dart';
 import 'screens/add_job_details.dart';
 import 'screens/view_jobs.dart';
+import 'screens/view_applied_jobs.dart';
+import 'screens/view_applicants.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +41,9 @@ class MyApp extends StatelessWidget {
         '/employer-dashboard': (context) => const EmployerDashboard(),
         '/employer-edit-profile': (context) => EditEmployerProfilePage(),
         '/add-job-details': (context) => AddJobDetailsScreen(),
-        '/view-jobs': (context) => JobDetailsViewPage()
+        '/view-jobs': (context) => JobDetailsViewPage(),
+        '/applied-jobs': (context) => AppliedJobsPage(),
+        '/view-applicants': (context) => ViewApplicantsPage()
       },
     );
   }

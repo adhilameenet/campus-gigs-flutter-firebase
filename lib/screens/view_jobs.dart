@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:url_launcher/url_launcher.dart'; // For sending emails
+import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class JobDetailsViewPage extends StatefulWidget {
   const JobDetailsViewPage({Key? key}) : super(key: key);
@@ -12,8 +13,7 @@ class JobDetailsViewPage extends StatefulWidget {
 class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  Map<String, String?> _filters =
-      {}; // Make sure it's String? to allow null values
+  Map<String, String?> _filters = {}; // Allows null values
   List<String> _jobTitles = ['Developer', 'Designer', 'Manager', 'Analyst'];
   List<String> _locations = ['Remote', 'New York', 'San Francisco', 'London'];
 
@@ -117,17 +117,20 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
                 'Salary Range', jobData['salary'] ?? 'N/A'),
             const SizedBox(height: 12),
             _buildDetailRow(
-                'Deadline',
-                jobData['deadline'] != null
-                    ? (jobData['deadline'] as Timestamp)
-                        .toDate()
-                        .toLocal()
-                        .toString()
-                    : 'N/A',
-                Icons.calendar_today),
+              'Deadline',
+              jobData['deadline'] != null
+                  ? (jobData['deadline'] as Timestamp)
+                      .toDate()
+                      .toLocal()
+                      .toString()
+                  : 'N/A',
+              Icons.calendar_today,
+            ),
             const SizedBox(height: 12),
             _buildDetailRow('Qualifications',
                 jobData['qualifications'] ?? 'N/A', Icons.assignment),
+            const SizedBox(height: 12),
+            _buildSkillsChips(jobData['skills_required'] ?? ''),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -137,9 +140,7 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
                     onPressed: isApplied
                         ? null
                         : () {
-                            setState(() {
-                              isApplied = true;
-                            });
+                            _showApplyDialog(jobData.id);
                           },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -213,6 +214,43 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
     return employerDoc['email'] ?? '';
   }
 
+  void _showApplyDialog(String jobId) {
+    String studentId = FirebaseAuth.instance.currentUser!.uid;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Application'),
+          content: Text('Job ID: $jobId\nStudent ID: $studentId'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                _saveApplication(jobId, studentId);
+                Navigator.of(context).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _saveApplication(String jobId, String studentId) {
+    FirebaseFirestore.instance.collection('applicants').add({
+      'job_id': jobId,
+      'student_id': studentId,
+      'applied_at': Timestamp.now(),
+    });
+  }
+
   Widget _buildPublishedDate(Timestamp? publishedAt) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
@@ -225,9 +263,10 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
             ? 'Published on: ${publishedAt.toDate().toLocal()}'
             : 'Published on: N/A',
         style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.blueAccent),
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+          color: Colors.blueAccent,
+        ),
       ),
     );
   }
@@ -264,19 +303,10 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 14, color: Colors.black54),
-                softWrap: true,
-              ),
+              Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text(value,
+                  style: TextStyle(fontSize: 16, color: Colors.grey[800])),
             ],
           ),
         ),
@@ -289,75 +319,26 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
     return Row(
       children: [
         Expanded(child: _buildDetailRow(title1, value1, Icons.location_on)),
-        const SizedBox(width: 20),
+        const SizedBox(width: 16),
         Expanded(child: _buildDetailRow(title2, value2, Icons.attach_money)),
       ],
     );
   }
 
-  void _showFilterDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Filter Jobs'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButton<String>(
-                isExpanded: true,
-                value: _filters['job_title'],
-                onChanged: (value) {
-                  setState(() {
-                    _filters['job_title'] = value;
-                  });
-                },
-                items: _jobTitles
-                    .map((title) => DropdownMenuItem<String>(
-                          value: title,
-                          child: Text(title),
-                        ))
-                    .toList(),
-                hint: const Text('Select Job Title'),
-              ),
-              const SizedBox(height: 12),
-              DropdownButton<String>(
-                isExpanded: true,
-                value: _filters['location'],
-                onChanged: (value) {
-                  setState(() {
-                    _filters['location'] = value;
-                  });
-                },
-                items: _locations
-                    .map((location) => DropdownMenuItem<String>(
-                          value: location,
-                          child: Text(location),
-                        ))
-                    .toList(),
-                hint: const Text('Select Location'),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  _filters.clear();
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Clear Filters'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Apply Filters'),
-            ),
-          ],
-        );
-      },
+  Widget _buildSkillsChips(String skills) {
+    List<String> skillList = skills.split(', ');
+    return Wrap(
+      spacing: 8,
+      children: skillList
+          .map((skill) => Chip(
+                label: Text(skill),
+                backgroundColor: Colors.blueAccent.withOpacity(0.1),
+              ))
+          .toList(),
     );
+  }
+
+  void _showFilterDialog() {
+    // Implement the filter dialog based on _jobTitles, _locations, etc.
   }
 }

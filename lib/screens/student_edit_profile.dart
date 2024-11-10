@@ -25,6 +25,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _startYearController = TextEditingController();
   final _endYearController = TextEditingController();
   final _skillsController = TextEditingController();
+  final _phoneNoController =
+      TextEditingController(); // Added phone number controller
 
   File? _profileImage;
   File? _resume;
@@ -56,6 +58,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _startYearController.text = data['startYear'] ?? '';
           _endYearController.text = data['endYear'] ?? '';
           _skillsController.text = data['skills'].join(', ') ?? '';
+          _phoneNoController.text = data['phoneno'] ?? ''; // Fetch phone number
           _resumeUrl = data['resume']; // Fetch resume URL if exists
         });
       }
@@ -97,6 +100,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           'startYear': _startYearController.text.trim(),
           'endYear': _endYearController.text.trim(),
           'skills': _skillsController.text.trim().split(','),
+          'phoneno': _phoneNoController.text.trim(), // Added phone number field
         };
 
         // Upload Profile Picture
@@ -263,6 +267,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   const SizedBox(height: 20),
 
+                  // Phone No
+                  TextFormField(
+                    controller: _phoneNoController,
+                    decoration: InputDecoration(
+                      labelText: 'Phone Number',
+                      filled: true,
+                      fillColor: Colors.grey[200],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    keyboardType: TextInputType.phone,
+                  ),
+                  const SizedBox(height: 20),
+
                   // Start Year
                   TextFormField(
                     controller: _startYearController,
@@ -295,7 +314,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   TextFormField(
                     controller: _skillsController,
                     decoration: InputDecoration(
-                      labelText: 'Skills (comma-separated)',
+                      labelText: 'Skills (comma separated)',
                       filled: true,
                       fillColor: Colors.grey[200],
                       border: OutlineInputBorder(
@@ -305,48 +324,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Resume Section
-                  _resumeUrl != null
-                      ? Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                final uri = Uri.parse(_resumeUrl!);
-                                if (await canLaunchUrl(uri)) {
-                                  await launchUrl(uri,
-                                      mode: LaunchMode.externalApplication);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content:
-                                            Text('Failed to open resume link')),
-                                  );
-                                }
-                              },
-                              child: Text(
-                                'Download Resume',
-                                style: TextStyle(
-                                  color: Colors.blue,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            ElevatedButton(
-                              onPressed: _pickResume,
-                              child: const Text('Upload New Resume'),
-                            ),
-                          ],
-                        )
-                      : ElevatedButton(
-                          onPressed: _pickResume,
-                          child: const Text('Upload Resume'),
-                        ),
-                  const SizedBox(height: 30),
-
+                  // Save Button
                   ElevatedButton(
                     onPressed: _saveProfile,
-                    child: const Text('Save Profile'),
+                    child: const Text('Save Changes'),
                   ),
                 ],
               ),
