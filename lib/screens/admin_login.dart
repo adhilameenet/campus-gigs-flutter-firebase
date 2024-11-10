@@ -66,13 +66,11 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white, // Set the full page background to white
       body: Center(
-        // Center the entire form both horizontally and vertically
         child: Container(
           width: 400, // Optional: fixed width for the login container
-          decoration: const BoxDecoration(
-            color: Colors.white, // Light background color for the theme
-          ),
+          color: Colors.white, // Set the container background to white
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Form(
@@ -163,17 +161,6 @@ class _AdminLoginPageState extends State<AdminLoginPage> {
                       child: const Text(
                         'Login',
                         style: TextStyle(fontSize: 18),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Forgot Password Option (optional)
-                    TextButton(
-                      onPressed: () {
-                        // Forgot password functionality
-                      },
-                      child: const Text(
-                        'Forgot Password?',
-                        style: TextStyle(color: Colors.blue),
                       ),
                     ),
                   ],

@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({Key? key}) : super(key: key);
@@ -29,6 +30,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   File? _resume;
   String? _resumeName;
   String? _resumeSize;
+  String? _resumeUrl;
 
   @override
   void initState() {
@@ -54,6 +56,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           _startYearController.text = data['startYear'] ?? '';
           _endYearController.text = data['endYear'] ?? '';
           _skillsController.text = data['skills'].join(', ') ?? '';
+          _resumeUrl = data['resume']; // Fetch resume URL if exists
         });
       }
     }
@@ -111,7 +114,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           }
         }
 
-        // Upload Resume
+        // Upload Resume if selected
         if (_resume != null) {
           try {
             final resumeRef =
@@ -119,6 +122,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             await resumeRef.putFile(_resume!);
             final resumeUrl = await resumeRef.getDownloadURL();
             data['resume'] = resumeUrl;
+            _resumeUrl = resumeUrl; // Update the resume URL state
           } catch (e) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text('Failed to upload resume: $e')),
@@ -301,43 +305,48 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
                   const SizedBox(height: 20),
 
-                  // Resume Upload
-                  Column(
-                    children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.upload_file),
-                        label: const Text('Upload Resume'),
-                        onPressed: _pickResume,
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 40, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 5,
+                  // Resume Section
+                  _resumeUrl != null
+                      ? Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () async {
+                                final uri = Uri.parse(_resumeUrl!);
+                                if (await canLaunchUrl(uri)) {
+                                  await launchUrl(uri,
+                                      mode: LaunchMode.externalApplication);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('Failed to open resume link')),
+                                  );
+                                }
+                              },
+                              child: Text(
+                                'Download Resume',
+                                style: TextStyle(
+                                  color: Colors.blue,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ElevatedButton(
+                              onPressed: _pickResume,
+                              child: const Text('Upload New Resume'),
+                            ),
+                          ],
+                        )
+                      : ElevatedButton(
+                          onPressed: _pickResume,
+                          child: const Text('Upload Resume'),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      if (_resume != null)
-                        Text('Resume: $_resumeName ($_resumeSize)'),
-                    ],
-                  ),
                   const SizedBox(height: 30),
 
-                  // Save Button
                   ElevatedButton(
                     onPressed: _saveProfile,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 50, vertical: 15),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      elevation: 5,
-                    ),
-                    child: const Text('Save'),
+                    child: const Text('Save Profile'),
                   ),
                 ],
               ),
@@ -345,7 +354,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ),
       ),
-      backgroundColor: Colors.white,
     );
   }
 }

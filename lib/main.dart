@@ -8,6 +8,9 @@ import 'screens/student_signup.dart';
 import 'screens/employer_signup.dart';
 import 'screens/student_dashboard.dart';
 import 'screens/employer_dashboard.dart';
+import 'screens/employer_edit_profile.dart';
+import 'screens/add_job_details.dart';
+import 'screens/view_jobs.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +37,9 @@ class MyApp extends StatelessWidget {
         '/employer-signup': (context) => const EmployerSignUpScreen(),
         '/student-dashboard': (context) => const StudentDashboard(),
         '/employer-dashboard': (context) => const EmployerDashboard(),
+        '/employer-edit-profile': (context) => EditEmployerProfilePage(),
+        '/add-job-details': (context) => AddJobDetailsScreen(),
+        '/view-jobs': (context) => JobDetailsViewPage()
       },
     );
   }
