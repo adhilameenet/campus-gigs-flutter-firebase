@@ -63,7 +63,7 @@ class _StudentDashboardState extends State<StudentDashboard> {
     return Scaffold(
       key: _scaffoldKey, // Assign the scaffold key to control the drawer
       appBar: AppBar(
-        title: const Text('Tutor Finder'),
+        title: const Text('Student Dashboard'),
         backgroundColor: Colors.teal,
         leading: IconButton(
           icon: const Icon(Icons.menu), // Hamburger menu icon

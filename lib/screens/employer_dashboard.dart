@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'employer_edit_profile.dart';
 import 'add_job_details.dart';
+import 'view_jobs_employer.dart';
 
 class EmployerDashboard extends StatefulWidget {
   const EmployerDashboard({super.key});
@@ -18,7 +19,8 @@ class _EmployerDashboardState extends State<EmployerDashboard> {
   // Pages for the employer dashboard
   final _pages = [
     const EditEmployerProfilePage(), // Edit Profile Page
-    const AddJobDetailsScreen(), // Add Job Details Page
+    const AddJobDetailsScreen(),
+    const ViewJobsScreen()
     // Add more pages as needed, e.g., MessagesPage(), JobsPage()
   ];
 
@@ -98,6 +100,17 @@ class _EmployerDashboardState extends State<EmployerDashboard> {
               onTap: () {
                 setState(() {
                   _currentSelectedIndex = 1; // Show Add Job Details page
+                  _isProfileSelected = false; // Reset profile selection flag
+                });
+                Navigator.of(context).pop(); // Close the drawer
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.work),
+              title: const Text('View Jobs'),
+              onTap: () {
+                setState(() {
+                  _currentSelectedIndex = 2; // Show Add Job Details page
                   _isProfileSelected = false; // Reset profile selection flag
                 });
                 Navigator.of(context).pop(); // Close the drawer

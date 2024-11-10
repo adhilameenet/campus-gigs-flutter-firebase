@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:url_launcher/url_launcher.dart'; // For sending emails
 
 class JobDetailsViewPage extends StatefulWidget {
   const JobDetailsViewPage({Key? key}) : super(key: key);
@@ -11,15 +12,15 @@ class JobDetailsViewPage extends StatefulWidget {
 class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
   TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  Map<String, String> _filters = {};
+  Map<String, String?> _filters =
+      {}; // Make sure it's String? to allow null values
   List<String> _jobTitles = ['Developer', 'Designer', 'Manager', 'Analyst'];
   List<String> _locations = ['Remote', 'New York', 'San Francisco', 'London'];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          Colors.grey[100], // Soft background color for the whole page
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: const Text('Job Listings'),
         backgroundColor: Colors.blueAccent,
@@ -89,6 +90,8 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
   }
 
   Widget _buildJobDetailTile(QueryDocumentSnapshot jobData) {
+    bool isApplied = false;
+
     return Card(
       elevation: 5,
       shape: RoundedRectangleBorder(
@@ -100,7 +103,8 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Job Published Date at the top
+            _buildActiveStatus(jobData['is_active']),
+            const SizedBox(height: 12),
             _buildPublishedDate(jobData['published_at']),
             const SizedBox(height: 12),
             _buildDetailRow(
@@ -112,32 +116,101 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
             _buildTwoFieldsRow('Location', jobData['location'] ?? 'N/A',
                 'Salary Range', jobData['salary'] ?? 'N/A'),
             const SizedBox(height: 12),
-            _buildTwoFieldsRow(
-                'Working Hours',
-                jobData['working_hours'] ?? 'N/A',
-                'Skills Required',
-                jobData['skills_required'] ?? 'N/A'),
-            const SizedBox(height: 12),
             _buildDetailRow(
-              'Deadline',
-              jobData['deadline'] != null
-                  ? (jobData['deadline'] as Timestamp)
-                      .toDate()
-                      .toLocal()
-                      .toString()
-                  : 'N/A',
-              Icons.calendar_today,
-            ),
+                'Deadline',
+                jobData['deadline'] != null
+                    ? (jobData['deadline'] as Timestamp)
+                        .toDate()
+                        .toLocal()
+                        .toString()
+                    : 'N/A',
+                Icons.calendar_today),
             const SizedBox(height: 12),
             _buildDetailRow('Qualifications',
                 jobData['qualifications'] ?? 'N/A', Icons.assignment),
             const SizedBox(height: 12),
-            // Active Status with more prominence
-            _buildActiveStatus(jobData['is_active']),
+            Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: ElevatedButton(
+                    onPressed: isApplied
+                        ? null
+                        : () {
+                            setState(() {
+                              isApplied = true;
+                            });
+                          },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Apply'),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          isApplied ? Colors.grey : Colors.blueAccent,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 3,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      String employerEmail =
+                          await _getEmployerEmail(jobData['employee_id']);
+                      if (await canLaunch('mailto:$employerEmail')) {
+                        await launch(
+                            'mailto:$employerEmail?subject=Job Application&body=I am interested in the job listing for ${jobData['job_title']} and have attached my resume.');
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Could not send email.'),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
+                      }
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.email, color: Colors.white),
+                        SizedBox(width: 8),
+                        Text('Contact Employer'),
+                      ],
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 12, horizontal: 20),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<String> _getEmployerEmail(String employeeId) async {
+    DocumentSnapshot employerDoc = await FirebaseFirestore.instance
+        .collection('employers')
+        .doc(employeeId)
+        .get();
+    return employerDoc['email'] ?? '';
   }
 
   Widget _buildPublishedDate(Timestamp? publishedAt) {
@@ -152,10 +225,9 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
             ? 'Published on: ${publishedAt.toDate().toLocal()}'
             : 'Published on: N/A',
         style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: Colors.blueAccent,
-        ),
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.blueAccent),
       ),
     );
   }
@@ -174,10 +246,9 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
         Text(
           isActive != null && isActive ? 'Active' : 'Inactive',
           style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: isActive != null && isActive ? Colors.green : Colors.red,
-          ),
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isActive != null && isActive ? Colors.green : Colors.red),
         ),
       ],
     );
@@ -187,11 +258,7 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          color: Colors.blueAccent,
-          size: 24,
-        ),
+        Icon(icon, color: Colors.blueAccent, size: 24),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -200,18 +267,14 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87),
               ),
               const SizedBox(height: 6),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
                 softWrap: true,
               ),
             ],
@@ -225,13 +288,9 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
       String title1, String value1, String title2, String value2) {
     return Row(
       children: [
-        Expanded(
-          child: _buildDetailRow(title1, value1, Icons.location_on),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildDetailRow(title2, value2, Icons.attach_money),
-        ),
+        Expanded(child: _buildDetailRow(title1, value1, Icons.location_on)),
+        const SizedBox(width: 20),
+        Expanded(child: _buildDetailRow(title2, value2, Icons.attach_money)),
       ],
     );
   }
@@ -242,109 +301,63 @@ class _JobDetailsViewPageState extends State<JobDetailsViewPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Filter Jobs'),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildFilterDropdown('Job Title', _jobTitles, 'job_title'),
-                const SizedBox(height: 12),
-                _buildFilterDropdown('Location', _locations, 'location'),
-                const SizedBox(height: 12),
-                _buildFilterInput('Salary Range', 'salary'),
-                const SizedBox(height: 12),
-                _buildFilterInput('Working Hours', 'working_hours'),
-                const SizedBox(height: 12),
-                _buildFilterInput('Skills Required', 'skills_required'),
-                const SizedBox(height: 12),
-                _buildFilterInput('Qualifications', 'qualifications'),
-              ],
-            ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButton<String>(
+                isExpanded: true,
+                value: _filters['job_title'],
+                onChanged: (value) {
+                  setState(() {
+                    _filters['job_title'] = value;
+                  });
+                },
+                items: _jobTitles
+                    .map((title) => DropdownMenuItem<String>(
+                          value: title,
+                          child: Text(title),
+                        ))
+                    .toList(),
+                hint: const Text('Select Job Title'),
+              ),
+              const SizedBox(height: 12),
+              DropdownButton<String>(
+                isExpanded: true,
+                value: _filters['location'],
+                onChanged: (value) {
+                  setState(() {
+                    _filters['location'] = value;
+                  });
+                },
+                items: _locations
+                    .map((location) => DropdownMenuItem<String>(
+                          value: location,
+                          child: Text(location),
+                        ))
+                    .toList(),
+                hint: const Text('Select Location'),
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () {
+                setState(() {
+                  _filters.clear();
+                });
                 Navigator.pop(context);
-                _applyFilters();
               },
-              child: const Text('Apply',
-                  style: TextStyle(color: Colors.blueAccent)),
+              child: const Text('Clear Filters'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                setState(() {
-                  _filters.clear();
-                });
               },
-              child: const Text('Clear Filters',
-                  style: TextStyle(color: Colors.redAccent)),
+              child: const Text('Apply Filters'),
             ),
           ],
         );
       },
     );
-  }
-
-  Widget _buildFilterDropdown(
-      String label, List<String> options, String field) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<String>(
-          value: _filters[field],
-          isExpanded: true,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _filters[field] = value!;
-            });
-          },
-          items: options
-              .map((option) => DropdownMenuItem(
-                    value: option,
-                    child: Text(option),
-                  ))
-              .toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFilterInput(String label, String field) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 6),
-        TextField(
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            contentPadding:
-                const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
-          ),
-          onChanged: (value) {
-            setState(() {
-              _filters[field] = value;
-            });
-          },
-        ),
-      ],
-    );
-  }
-
-  void _applyFilters() {
-    setState(() {});
   }
 }
