@@ -53,10 +53,11 @@ class GetStartedScreen extends StatelessWidget {
                     const Text(
                       'Welcome to CampusGigs!', // One line title
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 30,
+                        fontWeight: FontWeight.w800,
                         color: Color(0xFF0D47A1), // Blue color for title
                       ),
+                      textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 10),
                     Text(
