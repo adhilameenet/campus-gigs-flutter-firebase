@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'get_started.dart';
+import 'student_edit_profile.dart';
 
 class StudentDashboard extends StatefulWidget {
   const StudentDashboard({super.key});
@@ -15,7 +15,7 @@ class _StudentDashboardState extends State<StudentDashboard>
   bool _isCollapsed = true; // State for sidebar collapse/expand
   final _pages = [
     // StudentProfilePage(studentId: FirebaseAuth.instance.currentUser!.uid),
-    const GetStartedScreen(),
+    const EditProfilePage(),
     // SchedulePage(),
     // MessagesPage()
   ];
